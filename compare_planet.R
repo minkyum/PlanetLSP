@@ -3,6 +3,7 @@ library(gdalUtils)
 library(ncdf4)
 library(signal)
 library(RColorBrewer)
+library(doMC)
 
 args <- commandArgs()
 print(args)
@@ -10,48 +11,7 @@ print(args)
 tt <- as.numeric(substr(args[3],1,1)) 
 cc <- as.numeric(substr(args[3],2,4)) 
 
-###############################
-path <- '/projectnb/modislc/users/mkmoon/Planet/data/files'
-fileSR <- list.files(path=path,pattern=glob2rx('*SR*.tif'),full.names=T)
-fileDN <- list.files(path=path,pattern=glob2rx('*DN*.tif'),full.names=T)
 
-yy <- substr(fileSR,53,54)
-mm <- substr(fileSR,55,56)
-dd <- substr(fileSR,57,58)
-dates_all <- as.Date(paste(mm,'/',dd,'/',yy,sep=''),'%m/%d/%y')
-dates <- unique(dates_all)
-plot(dates)
-
-eviStack <- vector('list',length(dates))
-for(i in 1:length(dates)){
-  ids <- which(dates_all==dates[i])
-  if(length(ids)>1){
-    temp <- vector('list',length(ids))
-    for(j in 1:length(ids)){
-      red <- raster(fileSR[ids[j]],band=3)/10000
-      nir <- raster(fileSR[ids[j]],band=4)/10000
-      udm <- raster(fileDN[ids[j]])
-      vis <- 2.5*(nir-red)/(nir+2.4*red+1)
-      vis[udm==2] <- NA
-      temp[[j]] <- vis
-    }
-    temp$fun <- mean
-    temp$na.rm <- T
-    rast <- do.call(mosaic,temp)
-  }else{
-    red <- raster(fileSR[ids],band=3)/10000
-    nir <- raster(fileSR[ids],band=4)/10000
-    udm <- raster(fileSR[ids])
-    vis <- 2.5*(nir-red)/(nir+2.4*red+1)
-    vis[udm==2] <- NA
-    rast <- 2.5*(nir-red)/(nir+2.4*red+1)
-  }
-  eviStack[[i]] <- rast
-  print(i)
-}
-
-# setwd('/projectnb/modislc/users/mkmoon/Planet/phe/')
-# save(eviStack,file=paste('phePlanet_2018.rda',sep=''))
 
 pheMat <- matrix(NA,length(eviStack[[1]]),1)
 
