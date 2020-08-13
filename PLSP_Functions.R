@@ -1,4 +1,6 @@
 ###############################
+
+##
 saveEVI2stack <- function(imgDir){
   
   path <- imgDir
@@ -17,6 +19,15 @@ saveEVI2stack <- function(imgDir){
   fileSR <- list.files(path=path,pattern=glob2rx('*SR*.tif'),full.names=T)
   fileDN <- list.files(path=path,pattern=glob2rx('*DN*.tif'),full.names=T)
   
+  imgFull <- NULL
+  for(i in 1:length(dates)){
+    ids <- which(dates_all==dates[i])  
+    if(length(ids)==1){
+      imgFull <- i
+    }
+  }
+  imgBase <- raster(fileSR[which(dates_all==dates[imgFull])])  
+  
   eviStack <- foreach(i=1:length(dates),.combine='c') %dopar% {
     
     ids <- which(dates_all==dates[i])
@@ -31,9 +42,18 @@ saveEVI2stack <- function(imgDir){
         vis[udm>2|is.na(udm)] <- NA
         temp[[j]] <- vis
       }
+      
+      for(rr in 1:length(ids)){
+        log <- try(compareRaster(temp[[rr]],imgBase,extent=F,rowcol=F),
+                   silent=T)
+        if(inherits(log,'try-error')){
+          temp[[rr]] <- projectRaster(temp[[rr]],imgBase)    
+        }
+      }
       temp$fun <- mean
       temp$na.rm <- T
-      rast <- do.call(mosaic,temp)
+      rast <- do.call(mosaic,temp)  
+      
     }else{
       red <- raster(fileSR[ids],band=3)/10000
       nir <- raster(fileSR[ids],band=4)/10000
@@ -44,8 +64,54 @@ saveEVI2stack <- function(imgDir){
     }
   }
 
-  return(eviStack)
+  return(list(eviStack=eviStack,dates=dates))
 }
   
   
-
+##
+runPhenologyPlanet <- function(eviStack){
+  
+  dates <- eviStack$dates
+  eviStack <- eviStack$eviStack
+  
+  eviPoint <- matrix(NA,length(eviStack),1)
+  for(i in 1:length(eviStack)){
+    eviPoint[i,1] <- eviStack[[i]][j]
+  }
+  
+  if(sum(!is.na(eviPoint))>50 & max(diff(dates[!is.na(eviPoint)]))<30){
+    bgevi <- quantile(eviPoint[which(as.numeric(substr(as.character(dates),6,7))<4|
+                                       as.numeric(substr(as.character(dates),6,7))>10
+                                       )],0.9,na.rm=T)
+    eviPoint[eviPoint<bgevi] <- bgevi
+    
+    vitime <- matrix(NA,365,1)
+    vitime[c(1,365)] <- bgevi 
+    for(i in 1:length(dates)){
+      vitime[as.numeric(strftime(dates[i], format = "%j")),1] <- eviPoint[i]  
+    }
+    xd <- 1:365
+    aa <- approx(xd,vitime,n=365)[[2]]
+    yd <- sgolayfilt(aa)
+    dat <- data.frame(xd,yd)
+    try({
+      if(tt==1){
+        ydhat <- nls(yd ~ m1+(m2)/(1 + exp((m3-xd)/m4))-(m2)/(1 + exp((m5-xd)/m6)),
+                     data=dat,
+                     start = list(m1=bgevi,
+                                  m2=0.5,
+                                  m3=which(yd>(max(yd)+bgevi)/2)[1],
+                                  m4=8,
+                                  m5=285,
+                                  m6=7))
+        yyd <- predict(ydhat)
+      }else{
+        spl <- smooth.spline(yd,spar=0.4)
+        yyd <- predict(spl)[[2]]
+      }
+      
+      pheMat[j,1] <- which(yyd>(max(yyd)+min(yyd))/2)[1]  
+    },silent=T)
+  }
+  if(j%%1000==0) print(j)
+}
