@@ -1,0 +1,7 @@
+library(raster)
+library(rgdal)
+library(gdalUtils)
+library(ncdf4)
+library(signal)
+library(RColorBrewer)
+library(doMC)
