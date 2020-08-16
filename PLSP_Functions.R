@@ -64,54 +64,55 @@ saveEVI2stack <- function(imgDir){
     }
   }
 
-  return(list(eviStack=eviStack,dates=dates))
+  return(list(eviStack=eviStack,dates=dates,imgBase=imgBase))
 }
   
   
 ##
-runPhenologyPlanet <- function(eviStack){
+runPhenologyPlanet <- function(imgDir){
+  
+  eviStack <- saveEVI2stack(imgDir)
   
   dates <- eviStack$dates
+  imgBase <- eviStack$imgBase
   eviStack <- eviStack$eviStack
   
-  eviPoint <- matrix(NA,length(eviStack),1)
-  for(i in 1:length(eviStack)){
-    eviPoint[i,1] <- eviStack[[i]][j]
-  }
-  
-  if(sum(!is.na(eviPoint))>50 & max(diff(dates[!is.na(eviPoint)]))<30){
-    bgevi <- quantile(eviPoint[which(as.numeric(substr(as.character(dates),6,7))<4|
-                                       as.numeric(substr(as.character(dates),6,7))>10
-                                       )],0.9,na.rm=T)
-    eviPoint[eviPoint<bgevi] <- bgevi
+  pheMat <- foreach(j=1:length(eviStack[[1]]),.combine=cbind) %dopar% {
     
-    vitime <- matrix(NA,365,1)
-    vitime[c(1,365)] <- bgevi 
-    for(i in 1:length(dates)){
-      vitime[as.numeric(strftime(dates[i], format = "%j")),1] <- eviPoint[i]  
+    eviPoint <- matrix(NA,length(eviStack),1)
+    for(i in 1:length(eviStack)){
+      eviPoint[i,1] <- eviStack[[i]][j]
     }
-    xd <- 1:365
-    aa <- approx(xd,vitime,n=365)[[2]]
-    yd <- sgolayfilt(aa)
-    dat <- data.frame(xd,yd)
-    try({
-      if(tt==1){
-        ydhat <- nls(yd ~ m1+(m2)/(1 + exp((m3-xd)/m4))-(m2)/(1 + exp((m5-xd)/m6)),
-                     data=dat,
-                     start = list(m1=bgevi,
-                                  m2=0.5,
-                                  m3=which(yd>(max(yd)+bgevi)/2)[1],
-                                  m4=8,
-                                  m5=285,
-                                  m6=7))
-        yyd <- predict(ydhat)
-      }else{
-        spl <- smooth.spline(yd,spar=0.4)
-        yyd <- predict(spl)[[2]]
-      }
+    
+    
+    if(sum(!is.na(eviPoint))>50 & max(diff(dates[!is.na(eviPoint)]))<30){
+      bgevi <- quantile(eviPoint[which(as.numeric(substr(as.character(dates),6,7))<3|
+                                         as.numeric(substr(as.character(dates),6,7))>10
+      )],0.9,na.rm=T)
+      eviPoint[eviPoint<bgevi] <- bgevi
       
-      pheMat[j,1] <- which(yyd>(max(yyd)+min(yyd))/2)[1]  
-    },silent=T)
+      vitime <- matrix(NA,365,1)
+      vitime[c(1,365)] <- bgevi 
+      for(i in 1:length(dates)){
+        vitime[as.numeric(strftime(dates[i], format = "%j")),1] <- eviPoint[i]  
+      }
+      xd <- 1:365
+      aa <- approx(xd,vitime,n=365)[[2]]
+      yd <- sgolayfilt(aa)
+      dat <- data.frame(xd,yd)
+      
+      spl <- smooth.spline(yd,spar=0.4)
+      yyd <- predict(spl)[[2]]
+      
+      
+      pheme <- which(yyd>(max(yyd)+min(yyd))/2)[1] 
+    }else{
+      pheme <- NA
+    }
   }
-  if(j%%1000==0) print(j)
+   
+  pheRast <- setValues(imgBase,pheme)
+  
+  return(pheRast)
+
 }
