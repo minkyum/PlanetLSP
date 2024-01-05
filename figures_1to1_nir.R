@@ -334,7 +334,7 @@ stat1to1sh[11,3] <- mean(ptsPP95[[6]]-ptsHH[[6]],na.rm=T)
 
 # Plot
 setwd('/projectnb/modislc/users/mkmoon/Planet/figure/')
-png(filename='1to1_nir.png',width=12,height=8,unit='in',res=300)
+png(filename='1to1_nir_sig.png',width=12,height=8,unit='in',res=300)
 
 par(mfrow=c(2,3),oma=c(1,1,1,1),mar=c(4,4,1,1),mgp=c(2.5,1,0))
 spec <- rev(brewer.pal(11,'Spectral'))
@@ -356,7 +356,7 @@ for(ss in 1:6){
   smoothScatter(x1,y1,xlim=limx,ylim=limy,
                 colramp=mycolRamp,nbin=1000,nrpoints=0,
                 transformation=function(x)x^.6,axe=F,
-                xlab='Planet NIR (x 0.0001)',ylab='HLS NIR (x 0.0001)',
+                xlab='Planet NIR (x 10000)',ylab='HLS NIR (x 10000)',
                 cex.lab=1.7)
   # if(ss<5){
     axis(1,at=seq(0,10000,2000),cex.axis=1.7)
@@ -716,7 +716,7 @@ stat1to1sh[11,3] <- mean(ptsPP95[[6]]-ptsHH[[6]],na.rm=T)
 
 
 # Plot
-png(filename='1to1_red.png',width=12,height=8,unit='in',res=300)
+png(filename='1to1_red_sig.png',width=12,height=8,unit='in',res=300)
 
 par(mfrow=c(2,3),oma=c(1,1,1,1),mar=c(4,4,1,1),mgp=c(2.5,1,0))
 spec <- rev(brewer.pal(11,'Spectral'))
@@ -738,7 +738,7 @@ for(ss in 1:6){
   smoothScatter(x1,y1,xlim=limx,ylim=limy,
                 colramp=mycolRamp,nbin=1000,nrpoints=0,
                 transformation=function(x)x^.6,axe=F,
-                xlab='Planet Red (x 0.0001)',ylab='HLS Red (x 0.0001)',
+                xlab='Planet Red (x 10000)',ylab='HLS Red (x 10000)',
                 cex.lab=1.7)
   # if(ss<5){
   axis(1,at=seq(0,10000,1000),cex.axis=1.7)
@@ -753,7 +753,7 @@ for(ss in 1:6){
   abline(0,1,lty=5)
   
   
-  reg <- round(cor(x1,y1,use='na.or.complete'),3)
+  reg <- formatC(round(cor(x1,y1,use='na.or.complete'),3), digits=3,format="fg", flag="#")
   rmse <- round(sqrt(mean((x1-y1)^2,na.rm=T)))
   bias <- round(mean(x1-y1,na.rm=T))
   # nn <- sum(!is.na(x1))

@@ -166,6 +166,9 @@ write.csv(t1h,file='t1h_gws.csv')
 
 
 ############################
+
+# Creat 'datGcc' from 'site_shapefile.R'
+
 source('/usr3/graduate/mkmoon/GitHub/PlanetLSP/PLSP_Functions.R')
 vgt <- c('DB','MF','EN','AG','GR','SH')
 
@@ -178,7 +181,7 @@ datPTS2 <- extractTS(shpPoints,leviStack[[2]],limgBase[[2]],id=2,rad=5)
 
 setwd('/projectnb/modislc/users/mkmoon/Planet/figure/')
 
-png(filename='hf_2019_ts_hls_planet_1.png',width=13,height=5.5,unit='in',res=300)
+png(filename='hf_2019_ts_hls_planet_2.png',width=12,height=5,unit='in',res=300)
 
 par(mfrow=c(2,1),oma=c(2,1,0,1),mar=c(0.2,5,1,5),mgp=c(2.5,1,0))
 plot(lDates[[2]][1:155],apply(datPTS1[,1:155],2,median,na.rm=T),
@@ -231,6 +234,63 @@ mtext(expression(italic(G[CC])),4,2.5,cex=1.3)
 
 dev.off()
 
+## R2
+# Camera 1
+s11 <- cbind(lDates[[2]][1:155],apply(datPTS1[,1:155],2,median,na.rm=T))
+s12 <- cbind(hlsMF[[2]]$dates,hlsMF[[2]]$original_VI)
+s13 <- cbind(as.Date(99:(365*3),origin='2016-12-31'),datGcc[99:(365*3),3])
+
+# Camera 2
+s21 <- cbind(lDates[[2]][1:155],apply(datPTS2[,1:155],2,median,na.rm=T))
+s22 <- cbind(hlsMF[[1]]$dates,hlsMF[[1]]$original_VI)
+s23 <- cbind(as.Date(99:(365*3),origin='2016-12-31'),datGcc[99:(365*3),4])
+
+sTable <- matrix(NA,2,6)
+for(ss in 1:2){
+  if(ss==1){
+    pp <- s11
+    hh <- s12
+    cc <- s13
+  }else{
+    pp <- s21
+    hh <- s22
+    cc <- s23
+  }
+  
+  idp <- NULL
+  idh <- NULL
+  idg <- NULL
+  j <- 1
+  for(i in 1:length(pp[,1])){
+    if(length(which(pp[i,1]==hh[,1]))>0){
+      idp[j] <- i
+      idh[j] <- which(pp[i,1]==hh[,1])
+      j <- j+1
+    }
+  }
+  j <- 1
+  for(i in 1:length(idp)){
+    if(length(which(pp[idp[i],1]==cc[,1]))>0){
+      idg[j] <- which(pp[idp[i],1]==cc[,1])
+      j <- j+1
+    }
+  }
+  
+  r1 <- summary(lm(hh[idh,2]~pp[idp,2])) # HLS vs. Planet
+  r2 <- summary(lm(hh[idh,2]~cc[idg,2])) # HLS vs. PhenoCam
+  r3 <- summary(lm(pp[idp,2]~cc[idg,2])) # Planet vs. PhenoCam
+  
+  sTable[ss,1] <- round(r1$adj.r.squared,2)
+  sTable[ss,2] <- round(r2$adj.r.squared,2)
+  sTable[ss,3] <- round(r3$adj.r.squared,2)
+  sTable[ss,4] <- dim(na.omit(cbind(hh[idh,2],pp[idp,2])))[1]
+  sTable[ss,5] <- dim(na.omit(cbind(hh[idh,2],cc[idg,2])))[1]
+  sTable[ss,6] <- dim(na.omit(cbind(pp[idp,2],cc[idg,2])))[1]
+}
+colnames(sTable) <- c('HLS vs. Planet','HLS vs. PhenoCam','Planet vs. PhenoCam','#1','#2','#3')
+rownames(sTable) <- c('ROI DB','ROI EN')
+
+write.csv(sTable,file='/projectnb/modislc/users/mkmoon/Planet/data/sites_vi_r2_HF.csv')
 
 
 #######
@@ -243,13 +303,13 @@ datPTS2 <- extractTS(shpPoints,leviStack[[4]],limgBase[[4]],id=2,rad=5)
 datPTS3 <- extractTS(shpPoints,leviStack[[4]],limgBase[[4]],id=3,rad=5)
 datPTS4 <- extractTS(shpPoints,leviStack[[4]],limgBase[[4]],id=4,rad=5)
 
-png(filename='uief_2019_ts_hls_1.png',width=13,height=6.5,unit='in',res=300)
+png(filename='uief_2019_ts_hls_2.png',width=12,height=6,unit='in',res=300)
 
 par(mfrow=c(4,1),oma=c(2,1,0,1),mar=c(0.2,5,1,5),mgp=c(2.5,1,0))
 # for(i in 1:nrow(datPTS1)){
 plot(lDates[[4]][209:312],apply(datPTS1[,209:312],2,median,na.rm=T),
      col=alpha('red',0.7),ylim=c(0,1),axe=F,ann=F,
-     pch=19,cex=1.5) # Shapefile point 1
+     pch=19,cex=1.7) # Shapefile point 1
 box(lty=1)
 axis(2,seq(0,1,0.5),cex.axis=1.8)
 mtext('EVI2',2,2.7,cex=1.3)
@@ -257,7 +317,7 @@ text(18250,0.85,'1',pos=2,cex=3)
 abline(v=18057,lty=5,lwd=1.5)
 
 points(hlsAG[[1]]$dates,hlsAG[[1]]$original_VI,
-       col=alpha('blue',0.7),pch=19,cex=1.5)
+       col=alpha('blue',0.7),pch=19,cex=1.7)
 
 legend(17950,1,c('Planet','HLS','PhenoCam'),pch=19,cex=2,
        col=c('red','blue','forestgreen'),bty='n',
@@ -266,14 +326,14 @@ legend(17950,1,c('Planet','HLS','PhenoCam'),pch=19,cex=2,
 par(new = TRUE)
 plot(as.Date(3:359,origin='2018-12-31'),datGcc[(731+2):(1095-6),8], 
      axes=F,bty="n",xlab="",ylab="",
-     ylim=c(0.32,0.47),pch=19,cex=1.2,col=alpha('forestgreen',0.7))
+     ylim=c(0.32,0.47),pch=19,cex=1.4,col=alpha('forestgreen',0.7))
 axis(4,seq(0,1,0.05),cex.axis=1.8)
 mtext(expression(italic(G[CC])),4,3,cex=1.3)
 
 
 plot(lDates[[4]][209:312],apply(datPTS2[,209:312],2,median,na.rm=T),
      col=alpha('red',0.7),ylim=c(0,1),axe=F,ann=F,
-     pch=19,cex=1.5) # Shapefile point 2
+     pch=19,cex=1.7) # Shapefile point 2
 box(lty=1)
 axis(2,seq(0,1,0.5),cex.axis=1.8)
 mtext('EVI2',2,2.7,cex=1.3)
@@ -281,18 +341,18 @@ text(18250,0.85,'2',pos=2,cex=3)
 abline(v=18057,lty=5,lwd=1.5)
 
 points(hlsAG[[4]]$dates,hlsAG[[4]]$original_VI,
-       col=alpha('blue',0.7),pch=19,cex=1.5)
+       col=alpha('blue',0.7),pch=19,cex=1.7)
 
 par(new = TRUE)
 plot(as.Date(3:359,origin='2018-12-31'),datGcc[(731+2):(1095-6),7], 
      axes=F,bty="n",xlab="",ylab="",
-     ylim=c(0.30,0.50),pch=19,cex=1.2,col=alpha('forestgreen',0.7))
+     ylim=c(0.30,0.50),pch=19,cex=1.4,col=alpha('forestgreen',0.7))
 axis(4,seq(0,1,0.05),cex.axis=1.8)
 mtext(expression(italic(G[CC])),4,3,cex=1.3)
 
 plot(lDates[[4]][209:312],apply(datPTS3[,209:312],2,median,na.rm=T),
      col=alpha('red',0.7),ylim=c(0,1),axe=F,ann=F,
-     pch=19,cex=1.5) # Shapefile point 3
+     pch=19,cex=1.7) # Shapefile point 3
 box(lty=1)
 axis(2,seq(0,1,0.5),cex.axis=1.8)
 mtext('EVI2',2,2.7,cex=1.3)
@@ -300,18 +360,18 @@ text(18250,0.85,'3',pos=2,cex=3)
 abline(v=18057,lty=5,lwd=1.5)
 
 points(hlsAG[[2]]$dates,hlsAG[[2]]$original_VI,
-       col=alpha('blue',0.7),pch=19,cex=1.5)
+       col=alpha('blue',0.7),pch=19,cex=1.7)
 
 par(new = TRUE)
 plot(as.Date(3:359,origin='2018-12-31'),datGcc[(731+2):(1095-6),6], 
      axes=F,bty="n",xlab="",ylab="",
-     ylim=c(0.29,0.45),pch=19,cex=1.2,col=alpha('forestgreen',0.7))
+     ylim=c(0.29,0.45),pch=19,cex=1.4,col=alpha('forestgreen',0.7))
 axis(4,seq(0,1,0.05),cex.axis=1.8)
 mtext(expression(italic(G[CC])),4,3,cex=1.3)
 
 plot(lDates[[4]][209:312],apply(datPTS4[,209:312],2,median,na.rm=T),
      col=alpha('red',0.7),ylim=c(0,1),axe=F,ann=F,
-     pch=19,cex=1.5) # Shapefile point 4
+     pch=19,cex=1.7) # Shapefile point 4
 box(lty=1)
 axis(2,seq(0,1,0.5),cex.axis=1.8)
 axis(1,at=as.Date(c(15,74,135,196,258,319,(365+15)),origin='2018-12-31'),
@@ -322,31 +382,106 @@ text(18250,0.85,'4',pos=2,cex=3)
 abline(v=18057,lty=5,lwd=1.5)
 
 points(hlsAG[[3]]$dates,hlsAG[[3]]$original_VI,
-       col=alpha('blue',0.7),pch=19,cex=1.5)
+       col=alpha('blue',0.7),pch=19,cex=1.7)
 
 par(new = TRUE)
 plot(as.Date(3:359,origin='2018-12-31'),datGcc[(731+2):(1095-6),5], 
      axes=F,bty="n",xlab="",ylab="",
-     ylim=c(0.31,0.42),pch=19,cex=1.2,col=alpha('forestgreen',0.7))
+     ylim=c(0.31,0.42),pch=19,cex=1.4,col=alpha('forestgreen',0.7))
 axis(4,seq(0,1,0.05),cex.axis=1.8)
 mtext(expression(italic(G[CC])),4,3,cex=1.3)
 
 
 dev.off()
 
+## R2
+# Camera 1
+s11 <- cbind(lDates[[4]][209:312],apply(datPTS1[,209:312],2,median,na.rm=T))
+s12 <- cbind(hlsAG[[1]]$dates,hlsAG[[1]]$original_VI)
+s13 <- cbind(as.Date(3:359,origin='2018-12-31'),datGcc[(731+2):(1095-6),8])
+
+# Camera 2
+s21 <- cbind(lDates[[4]][209:312],apply(datPTS2[,209:312],2,median,na.rm=T))
+s22 <- cbind(hlsAG[[4]]$dates,hlsAG[[4]]$original_VI)
+s23 <- cbind(as.Date(3:359,origin='2018-12-31'),datGcc[(731+2):(1095-6),7])
+
+# Camera 3
+s31 <- cbind(lDates[[4]][209:312],apply(datPTS3[,209:312],2,median,na.rm=T))
+s32 <- cbind(hlsAG[[2]]$dates,hlsAG[[2]]$original_VI)
+s33 <- cbind(as.Date(3:359,origin='2018-12-31'),datGcc[(731+2):(1095-6),6])
+
+# Camera 4
+s41 <- cbind(lDates[[4]][209:312],apply(datPTS4[,209:312],2,median,na.rm=T))
+s42 <- cbind(hlsAG[[3]]$dates,hlsAG[[3]]$original_VI)
+s43 <- cbind(as.Date(3:359,origin='2018-12-31'),datGcc[(731+2):(1095-6),5])
+
+sTable <- matrix(NA,4,6)
+for(ss in 1:4){
+  if(ss==1){
+    pp <- s11
+    hh <- s12
+    cc <- s13
+  }else if(ss==2){
+    pp <- s21
+    hh <- s22
+    cc <- s23
+  }else if(ss==3){
+    pp <- s31
+    hh <- s32
+    cc <- s33
+  }else{
+    pp <- s41
+    hh <- s42
+    cc <- s43
+  }
+  
+  idp <- NULL
+  idh <- NULL
+  idg <- NULL
+  j <- 1
+  for(i in 1:length(pp[,1])){
+    if(length(which(pp[i,1]==hh[,1]))>0){
+      idp[j] <- i
+      idh[j] <- which(pp[i,1]==hh[,1])
+      j <- j+1
+    }
+  }
+  j <- 1
+  for(i in 1:length(idp)){
+    if(length(which(pp[idp[i],1]==cc[,1]))>0){
+      idg[j] <- which(pp[idp[i],1]==cc[,1])
+      j <- j+1
+    }
+  }
+  
+  r1 <- summary(lm(hh[idh,2]~pp[idp,2])) # HLS vs. Planet
+  r2 <- summary(lm(hh[idh,2]~cc[idg,2])) # HLS vs. PhenoCam
+  r3 <- summary(lm(pp[idp,2]~cc[idg,2])) # Planet vs. PhenoCam
+  
+  sTable[ss,1] <- round(r1$adj.r.squared,2)
+  sTable[ss,2] <- round(r2$adj.r.squared,2)
+  sTable[ss,3] <- round(r3$adj.r.squared,2)
+  sTable[ss,4] <- dim(na.omit(cbind(hh[idh,2],pp[idp,2])))[1]
+  sTable[ss,5] <- dim(na.omit(cbind(hh[idh,2],cc[idg,2])))[1]
+  sTable[ss,6] <- dim(na.omit(cbind(pp[idp,2],cc[idg,2])))[1]
+}
+colnames(sTable) <- c('HLS vs. Planet','HLS vs. PhenoCam','Planet vs. PhenoCam','#1','#2','#3')
+rownames(sTable) <- c('ROI 1','ROI 2','ROI 3','ROI 4')
+
+write.csv(sTable,file='/projectnb/modislc/users/mkmoon/Planet/data/sites_vi_r2_UIEF.csv')
 
 
 ###
 # DB, EN, GR, and SH
 # Time series
-shpPoints <- readOGR('/projectnb/modislc/users/mkmoon/Planet/shp/17SQD_pts_1.shp')
-datPTSdb <- extractTS(shpPoints,leviStack[[1]],limgBase[[1]],id=1,rad=5)
-shpPoints <- readOGR('/projectnb/modislc/users/mkmoon/Planet/shp/19TEL_pts_1.shp')
-datPTSen <- extractTS(shpPoints,leviStack[[3]],limgBase[[3]],id=1,rad=5)
-shpPoints <- readOGR('/projectnb/modislc/users/mkmoon/Planet/shp/13TEF_pts_1.shp')
-datPTSgr <- extractTS(shpPoints,leviStack[[5]],limgBase[[5]],id=1,rad=5)
-shpPoints <- readOGR('/projectnb/modislc/users/mkmoon/Planet/shp/10TGP_pts_1.shp')
-datPTSsh <- extractTS(shpPoints,leviStack[[6]],limgBase[[6]],id=1,rad=5)
+shpPoints <- readOGR('/projectnb/modislc/users/mkmoon/Planet/shp/sites/sites_points_1.shp')
+datPTSdb <- extractTS(shpPoints,leviStack[[1]],limgBase[[1]],rad=5)
+shpPoints <- readOGR('/projectnb/modislc/users/mkmoon/Planet/shp/sites/sites_points_6.shp')
+datPTSen <- extractTS(shpPoints,leviStack[[3]],limgBase[[3]],rad=5)
+shpPoints <- readOGR('/projectnb/modislc/users/mkmoon/Planet/shp/sites/sites_points_5.shp')
+datPTSgr <- extractTS(shpPoints,leviStack[[5]],limgBase[[5]],rad=5)
+shpPoints <- readOGR('/projectnb/modislc/users/mkmoon/Planet/shp/sites/sites_points_4.shp')
+datPTSsh <- extractTS(shpPoints,leviStack[[6]],limgBase[[6]],rad=5)
 
 
 png(filename='others_ts_1.png',width=12,height=7,unit='in',res=300)
@@ -444,6 +579,83 @@ abline(v=as.Date(125,origin='2018-12-31'),lty=5,lwd=1.5)
 dev.off()
 
 
+## R2
+# DB
+s11 <- cbind(lDates[[1]][1:199],apply(datPTSdb[,1:199],2,median,na.rm=T))
+s12 <- cbind(hlsDB[[1]]$dates,hlsDB[[1]]$original_VI)
+s13 <- cbind(as.Date(1:(365*3),origin='2016-12-31'),datGcc[1:(365*3),2])
+
+# EN
+s21 <- cbind(lDates[[3]][1:194],apply(datPTSen[,1:194],2,median,na.rm=T))
+s22 <- cbind(hlsEN[[1]]$dates,hlsEN[[1]]$original_VI)
+s23 <- cbind(as.Date(1:(365*3),origin='2016-12-31'),datGcc[1:(365*3),11])
+
+# GR
+s31 <- cbind(lDates[[5]][1:365],apply(datPTSgr[,1:365],2,median,na.rm=T))
+s32 <- cbind(hlsGR[[4]]$dates,hlsGR[[4]]$original_VI)
+s33 <- cbind(as.Date(1:(365*3),origin='2016-12-31'),datGcc[1:(365*3),10])
+
+# SH
+s41 <- cbind(lDates[[6]][1:342],apply(datPTSsh[,1:342],2,median,na.rm=T))
+s42 <- cbind(hlsSH[[4]]$dates,hlsSH[[4]]$original_VI)
+s43 <- cbind(as.Date(1:(365*3),origin='2016-12-31'),datGcc[1:(365*3),9])
+
+sTable <- matrix(NA,4,6)
+for(ss in 1:4){
+  if(ss==1){
+    pp <- s11
+    hh <- s12
+    cc <- s13
+  }else if(ss==2){
+    pp <- s21
+    hh <- s22
+    cc <- s23
+  }else if(ss==3){
+    pp <- s31
+    hh <- s32
+    cc <- s33
+  }else{
+    pp <- s41
+    hh <- s42
+    cc <- s43
+  }
+  
+  idp <- NULL
+  idh <- NULL
+  idg <- NULL
+  j <- 1
+  for(i in 1:length(pp[,1])){
+    if(length(which(pp[i,1]==hh[,1]))>0){
+      idp[j] <- i
+      idh[j] <- which(pp[i,1]==hh[,1])
+      j <- j+1
+    }
+  }
+  j <- 1
+  for(i in 1:length(idp)){
+    if(length(which(pp[idp[i],1]==cc[,1]))>0){
+      idg[j] <- which(pp[idp[i],1]==cc[,1])
+      j <- j+1
+    }
+  }
+
+  r1 <- summary(lm(hh[idh,2]~pp[idp,2])) # HLS vs. Planet
+  r2 <- summary(lm(hh[idh,2]~cc[idg,2])) # HLS vs. PhenoCam
+  r3 <- summary(lm(pp[idp,2]~cc[idg,2])) # Planet vs. PhenoCam
+  
+  sTable[ss,1] <- round(r1$adj.r.squared,2)
+  sTable[ss,2] <- round(r2$adj.r.squared,2)
+  sTable[ss,3] <- round(r3$adj.r.squared,2)
+  sTable[ss,4] <- dim(na.omit(cbind(hh[idh,2],pp[idp,2])))[1]
+  sTable[ss,5] <- dim(na.omit(cbind(hh[idh,2],cc[idg,2])))[1]
+  sTable[ss,6] <- dim(na.omit(cbind(pp[idp,2],cc[idg,2])))[1]
+}
+colnames(sTable) <- c('HLS vs. Planet','HLS vs. PhenoCam','Planet vs. PhenoCam','#1','#2','#3')
+rownames(sTable) <- c('DB','EN','GR','SH')
+
+write.csv(sTable,file='/projectnb/modislc/users/mkmoon/Planet/data/sites_vi_r2.csv')
+
+
 ###########################################
 ## 1 to 1
 
@@ -513,6 +725,8 @@ for(ss in 1:6){
       ptsPLA95[[i]] <- apply(datPTSag[,ptsP],2,quantile,0.95,na.rm=T)
       ptsHLS[[i]] <- hlsPT$original_VI[ptsH]
     }
+    
+    if(i%%100==0) print(paste(ss,';',i))
   }
   
   ptsPP05[[ss]] <- unlist(ptsPLA05)
@@ -528,7 +742,7 @@ for(ss in 1:6){
   ptsPP95[[ss]] <- unlist(ptsPLA95)
   ptsHH[[ss]] <- unlist(ptsHLS)
   
-  print(ss)
+  # print(ss)
 }
 
 stat1to1db <- matrix(NA,11,5)
@@ -742,13 +956,21 @@ stat1to1sh[11,1] <- cor(ptsPP95[[6]],ptsHH[[6]],use='na.or.complete')
 stat1to1sh[11,2] <- sqrt(mean((ptsPP95[[6]]-ptsHH[[6]])^2,na.rm=T))
 stat1to1sh[11,3] <- mean(ptsPP95[[6]]-ptsHH[[6]],na.rm=T)
 
+# setwd('/projectnb/modislc/users/mkmoon/Planet/data/')
+# save(stat1to1db,stat1to1mf,stat1to1en,
+#      stat1to1ag,stat1to1gr,stat1to1sh,
+#      file='stat1to1_evi.rda')
+
 # plot
+load('/projectnb/modislc/users/mkmoon/Planet/data/stat1to1_evi.rda')
 setwd('/projectnb/modislc/users/mkmoon/Planet/figure/')
 
-png(filename='stat_1to1_r.png',width=13,height=8.5,unit='in',res=300)
+png(filename='stat_1to1_r_2.png',width=13,height=7.5,unit='in',res=300)
 
+mycol <- brewer.pal(7,'Set1')
+mycol <- c(mycol[1:5],mycol[7])
 par(fig=c(0,0.318,0,1),oma=c(1,1,1,1),mar=c(4,4,1,1),mgp=c(2.5,1,0))
-plot(c(5,seq(10,90,10),95),stat1to1db[,1],pch=1,cex=1.3,
+plot(c(5,seq(10,90,10),95),stat1to1db[,1],pch=21,cex=1.8,bg=mycol[1],
      xlim=c(0,100),ylim=c(0.89,0.975),type='o',lwd=2,axe=F,ann=F)
 box(lty=1)
 axis(1,c(5,25,50,75,95),cex.axis=1.3)
@@ -756,26 +978,26 @@ axis(2,seq(0.88,1,0.01),cex.axis=1.3)
 mtext('Quantile (%)',1,2.5,cex=1.5)
 mtext('Correlation',2,2.5,cex=1.5)
 
-points(c(5,seq(10,90,10),95),stat1to1mf[,1],type='o',pch=2,cex=1.3,lwd=2)
-points(c(5,seq(10,90,10),95),stat1to1ag[,1],type='o',pch=4,cex=1.3,lwd=2)
-points(c(5,seq(10,90,10),95),stat1to1gr[,1],type='o',pch=5,cex=1.3,lwd=2)
+points(c(5,seq(10,90,10),95),stat1to1mf[,1],type='o',pch=22,cex=1.8,lwd=2,bg=mycol[2])
+points(c(5,seq(10,90,10),95),stat1to1ag[,1],type='o',pch=24,cex=1.8,lwd=2,bg=mycol[4])
+points(c(5,seq(10,90,10),95),stat1to1gr[,1],type='o',pch=25,cex=1.8,lwd=2,bg=mycol[5])
 
 par(new=T)
 plot(c(5,seq(10,90,10),95),stat1to1en[,1],type='o',
      axes=F,bty="n",xlab="",ylab="",
-     ylim=c(0.77,0.96),col='darkgreen',lwd=2,cex=1.3,pch=3)
+     ylim=c(0.77,0.96),col='darkgreen',lwd=2,pch=23,cex=1.8,bg=mycol[3])
 axis(4,seq(0.82,0.86,0.02),cex.axis=1.3,col='darkgreen',line=0.2,col.axis='darkgreen')
 axis(4,seq(0.82,0.86,0.02),cex.axis=1.3,col='darkgreen',line=0.2,col.axis='darkgreen')
 
 par(new=T)
 plot(c(5,seq(10,90,10),95),stat1to1sh[,1],type='o',
      axes=F,bty="n",xlab="",ylab="",
-     ylim=c(0.74,0.95),col='darkblue',lwd=2,cex=1.3,pch=6)
-axis(4,seq(0.74,0.780,0.02),cex.axis=1.3,col='darkblue',line=0.2,col.axis='darkblue')
-axis(4,seq(0.74,0.780,0.02),cex.axis=1.3,col='darkblue',line=0.2,col.axis='darkblue')
+     ylim=c(0.74,0.95),col='darkred',lwd=2,pch=21,cex=1.8,bg=mycol[6])
+axis(4,seq(0.74,0.780,0.02),cex.axis=1.3,col='darkred',line=0.2,col.axis='darkred')
+axis(4,seq(0.74,0.780,0.02),cex.axis=1.3,col='darkred',line=0.2,col.axis='darkred')
 
 par(fig=c(0.342,0.679,0,1),oma=c(1,1,1,1),mar=c(4,4,1,1),mgp=c(2.5,1,0),new=T)
-plot(c(5,seq(10,90,10),95),stat1to1db[,2],pch=1,cex=1.3,
+plot(c(5,seq(10,90,10),95),stat1to1db[,2],pch=21,cex=1.8,bg=mycol[1],
      xlim=c(0,100),ylim=c(0.005,0.11),type='o',lwd=2,axe=F,ann=F)
 box(lty=1)
 axis(1,c(5,25,50,75,95),cex.axis=1.3)
@@ -783,16 +1005,17 @@ axis(2,seq(0,0.1,0.02),cex.axis=1.3)
 mtext('Quantile (%)',1,2.5,cex=1.5)
 mtext('RMSE',2,2.5,cex=1.5)
 
-legend('topright',c('DB','MF','EN','AG','GR','SH'),pch=1:6,cex=1.3,bty='n',lwd=2)
+legend('topright',c('DB','MF','EN','AG','GR','SH'),
+       pch=c(21:25,21),cex=1.5,bty='n',lwd=2,pt.bg=mycol,pt.cex=1.8)
 
-points(c(5,seq(10,90,10),95),stat1to1mf[,2],type='o',pch=2,cex=1.3,lwd=2)
-points(c(5,seq(10,90,10),95),stat1to1en[,2],type='o',pch=3,cex=1.3,lwd=2)
-points(c(5,seq(10,90,10),95),stat1to1ag[,2],type='o',pch=4,cex=1.3,lwd=2)
-points(c(5,seq(10,90,10),95),stat1to1gr[,2],type='o',pch=5,cex=1.3,lwd=2)
-points(c(5,seq(10,90,10),95),stat1to1sh[,2],type='o',pch=6,cex=1.3,lwd=2)
+points(c(5,seq(10,90,10),95),stat1to1mf[,2],type='o',pch=22,cex=1.8,lwd=2,bg=mycol[2])
+points(c(5,seq(10,90,10),95),stat1to1en[,2],type='o',pch=23,cex=1.8,lwd=2,bg=mycol[3])
+points(c(5,seq(10,90,10),95),stat1to1ag[,2],type='o',pch=24,cex=1.8,lwd=2,bg=mycol[4])
+points(c(5,seq(10,90,10),95),stat1to1gr[,2],type='o',pch=25,cex=1.8,lwd=2,bg=mycol[5])
+points(c(5,seq(10,90,10),95),stat1to1sh[,2],type='o',pch=21,cex=1.8,lwd=2,bg=mycol[6])
 
 par(fig=c(0.681,1,0,1),oma=c(1,1,1,1),mar=c(4,4,1,1),mgp=c(2.5,1,0),new=T)
-plot(c(5,seq(10,90,10),95),stat1to1db[,3],pch=1,cex=1.3,
+plot(c(5,seq(10,90,10),95),stat1to1db[,3],pch=21,cex=1.8,bg=mycol[1],
      xlim=c(0,100),ylim=c(-0.1,0.02),type='o',lwd=2,axe=F,ann=F)
 box(lty=1)
 axis(1,c(5,25,50,75,95),cex.axis=1.3)
@@ -800,11 +1023,11 @@ axis(2,seq(-0.1,0.02,0.02),cex.axis=1.3)
 mtext('Quantile (%)',1,2.5,cex=1.5)
 mtext('Bias',2,2.5,cex=1.5)
 
-points(c(5,seq(10,90,10),95),stat1to1mf[,3],type='o',pch=2,cex=1.3,lwd=2)
-points(c(5,seq(10,90,10),95),stat1to1en[,3],type='o',pch=3,cex=1.3,lwd=2)
-points(c(5,seq(10,90,10),95),stat1to1ag[,3],type='o',pch=4,cex=1.3,lwd=2)
-points(c(5,seq(10,90,10),95),stat1to1gr[,3],type='o',pch=5,cex=1.3,lwd=2)
-points(c(5,seq(10,90,10),95),stat1to1sh[,3],type='o',pch=6,cex=1.3,lwd=2)
+points(c(5,seq(10,90,10),95),stat1to1mf[,3],type='o',pch=22,cex=1.8,lwd=2,bg=mycol[2])
+points(c(5,seq(10,90,10),95),stat1to1en[,3],type='o',pch=23,cex=1.8,lwd=2,bg=mycol[3])
+points(c(5,seq(10,90,10),95),stat1to1ag[,3],type='o',pch=24,cex=1.8,lwd=2,bg=mycol[4])
+points(c(5,seq(10,90,10),95),stat1to1gr[,3],type='o',pch=25,cex=1.8,lwd=2,bg=mycol[5])
+points(c(5,seq(10,90,10),95),stat1to1sh[,3],type='o',pch=21,cex=1.8,lwd=2,bg=mycol[6])
 abline(h=0,lty=5)
 
 dev.off()
@@ -819,7 +1042,7 @@ dev.off()
 #   abline(lm(ptsHH[[ss]]~ptsPP[[ss]]),col='red')
 # }
 
-png(filename='1to1_evi.png',width=12,height=8,unit='in',res=300)
+png(filename='1to1_evi_sig.png',width=12,height=8,unit='in',res=300)
 
 par(mfrow=c(2,3),oma=c(1,1,1,1),mar=c(4,4,1,1),mgp=c(2.5,1,0))
 spec <- rev(brewer.pal(11,'Spectral'))
@@ -856,7 +1079,7 @@ for(ss in 1:6){
   abline(0,1,lty=5)
   
   
-  reg <- round(cor(x1,y1,use='na.or.complete'),3)
+  reg <- formatC(round(cor(x1,y1,use='na.or.complete'),3), digits=3,format="fg", flag="#")
   rmse <- round(sqrt(mean((x1-y1)^2,na.rm=T)),2)
   bias <- round(mean(x1-y1,na.rm=T),2)
   # nn <- sum(!is.na(x1))

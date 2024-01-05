@@ -50,6 +50,54 @@ for(ss in 1:length(sites)){
     datCoor$vgt2[ss] <- vgt2
 }
 
+#######################
+# Site map
+# for(i in 1:6){
+  geog_crs = CRS("+proj=longlat +datum=WGS84")
+  site_sinu <- data.frame(datCoor$lon[c(1,2,6,3,5,4)],datCoor$lat[c(1,2,6,3,5,4)])
+  xy        <- site_sinu[,c(1,2)]
+  bb      <- SpatialPointsDataFrame(coords=xy,data=site_sinu,proj4string=geog_crs)
+  bb <- spTransform(bb,crs(erepa))
+
+#   setwd('/projectnb/modislc/users/mkmoon/Planet/shp/sites/')
+#   writeOGR(bb,".",paste('sites_points_',i,sep=''),driver="ESRI Shapefile",overwrite=T)
+#   
+# }
+
+us <- shapefile('/projectnb/modislc/users/mkmoon/Planet/shp/map_study_region.shp/')
+
+setwd('/projectnb/modislc/users/mkmoon/Planet/figure/')
+png(filename='site_map.png',width=9.5,height=6.3,unit='in',res=300)
+
+par(oma=c(1,1,1,1),mar=c(2,2,1,1),mgp=c(2.5,1,0))
+plot(us,col='grey90')
+mycol <- brewer.pal(7,'Set1')
+mycol <- c(mycol[1:5],mycol[7])
+plot(bb,add=T,bg=mycol[1:6],pch=c(21:25,21),cex=1.7)
+
+legend('bottomleft',c('DB','MF','EN','AG','GR','SH'),
+       pch=c(21:25,21),cex=1.5,bty='n',pt.bg=mycol,pt.cex=1.7)
+
+dev.off()
+
+
+## Get MCD12Q1
+setwd('/projectnb/modislc/users/mkmoon/Planet/shp/q1/')
+
+mcd12q1_path <- paste('/projectnb/modislc/users/mkmoon/mcd12q1/e4ftl01.cr.usgs.gov/MOTA/MCD12Q1.006/2019.01.01',sep='')
+file <- list.files(path=mcd12q1_path,full.names=T)
+tile_list <- substr(file,106,111)
+for(tt in 1:32){
+  sds <- get_subdatasets(file[tt])
+  lct <- raster(sds[1])
+
+  writeRaster(lct, filename=paste('q1_',tile_list[tt],'.tif',sep=''), format="GTiff", overwrite=TRUE)  
+  print(tt)
+}
+
+  
+
+
 
 # # Make shape-polygon
 # setwd('/projectnb/modislc/users/mkmoon/Planet/shp/sites/')
