@@ -37,8 +37,8 @@ def setup_filter(coords, minyear, maxyear):
         "type": "DateRangeFilter", # Type of filter -> Date Range
         "field_name": "acquired", # The field to filter on: "acquired" -> Date on which the "image was taken"
         "config": {
-            "gte": "{}-01-01T00:00:00.000Z".format(minyear), # "gte" -> Greater than or equal to
-            "lt":"{}-01-01T00:00:00Z".format(maxyear)
+            "gte": "{}-07-01T00:00:00.000Z".format(minyear), # "gte" -> Greater than or equal to
+            "lt":"{}-07-01T00:00:00Z".format(maxyear)
             }
         }
     
@@ -190,10 +190,10 @@ def main(argv):
     site_num = pandas.to_numeric(argv[0])
     site_num = 0
     
-    geometry_path = "/projectnb/modislc/users/mkmoon/wetland/geojson"
-    min_year = 2015
-    max_year = 2023
-    output_dir = "/projectnb/modislc/users/mkmoon/wetland/raw"
+    geometry_path = "/projectnb/modislc/users/mkmoon/hyunjae/mangrove/plsp/geojson"
+    min_year = 2018
+    max_year = 2024
+    output_dir = "/projectnb/modislc/users/mkmoon/hyunjae/mangrove/plsp/raw"
     check_existing_orders="False"
     
     print("Input Params:")
@@ -209,8 +209,9 @@ def main(argv):
         sys.exit("{} does not exist.".format(output_dir))
     
     #PLANET_API_KEY = os.getenv('PL_API_KEY')
-    #PLANET_API_KEY = "3feab9a6cc1b4c1e8d65281025ad3382"
-    PLANET_API_KEY = "PLAKab6ff8c62d8943d89e7f2270dab87fc2"
+    #PLANET_API_KEY = "3feab9a6cc1b4c1e8d65281025ad3382" #Mark
+    #PLANET_API_KEY = "PLAKab6ff8c62d8943d89e7f2270dab87fc2" #Gavin
+    PLANET_API_KEY = "PLAKa19cc5036e4b4f958ed287dbc7c70392"
     
     # Setup the session
     session = requests.Session()
@@ -397,16 +398,16 @@ def main(argv):
                     
                     else:
                         feature_coords_buffer = feature_coords
-                        feature_coords_buffer[0][0][0] = feature_coords_buffer[0][0][0] - 0.0015
-                        feature_coords_buffer[0][0][1] = feature_coords_buffer[0][0][1] - 0.0015    
-                        feature_coords_buffer[0][1][0] = feature_coords_buffer[0][1][0] + 0.0015
-                        feature_coords_buffer[0][1][1] = feature_coords_buffer[0][1][1] - 0.0015
-                        feature_coords_buffer[0][2][0] = feature_coords_buffer[0][2][0] + 0.0015
-                        feature_coords_buffer[0][2][1] = feature_coords_buffer[0][2][1] + 0.0015
-                        feature_coords_buffer[0][3][0] = feature_coords_buffer[0][3][0] - 0.0015
-                        feature_coords_buffer[0][3][1] = feature_coords_buffer[0][3][1] + 0.0015
-                        feature_coords_buffer[0][4][0] = feature_coords_buffer[0][4][0] - 0.0015
-                        feature_coords_buffer[0][4][1] = feature_coords_buffer[0][4][1] - 0.0015
+                        #feature_coords_buffer[0][0][0] = feature_coords_buffer[0][0][0] - 0.0015
+                        #feature_coords_buffer[0][0][1] = feature_coords_buffer[0][0][1] - 0.0015    
+                        #feature_coords_buffer[0][1][0] = feature_coords_buffer[0][1][0] + 0.0015
+                        #feature_coords_buffer[0][1][1] = feature_coords_buffer[0][1][1] - 0.0015
+                        #feature_coords_buffer[0][2][0] = feature_coords_buffer[0][2][0] + 0.0015
+                        #feature_coords_buffer[0][2][1] = feature_coords_buffer[0][2][1] + 0.0015
+                        #feature_coords_buffer[0][3][0] = feature_coords_buffer[0][3][0] - 0.0015
+                        #feature_coords_buffer[0][3][1] = feature_coords_buffer[0][3][1] + 0.0015
+                        #feature_coords_buffer[0][4][0] = feature_coords_buffer[0][4][0] - 0.0015
+                        #feature_coords_buffer[0][4][1] = feature_coords_buffer[0][4][1] - 0.0015
                         
                         request = {  
                            "name": order_name,

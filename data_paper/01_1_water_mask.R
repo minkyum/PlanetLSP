@@ -12,7 +12,7 @@ print(args)
 
 numSite <- as.numeric(substr(args[3],1,3))
 ck      <- as.numeric(substr(args[3],4,5))
-# numSite <- 53; ck <- 1
+# numSite <- 2; ck <- 1
 
 
 ###############################
@@ -82,10 +82,10 @@ if(length(waterTile)==1){
 
 
 ########################################
-if(ck==14){
-  cdLeng <- 1301:nrow(waterReprojected)
+if(ck==24){
+  cdLeng <- 3451:nrow(waterReprojected)
 }else{
-  cdLeng <- ((ck-1)*100+1):(ck*100)
+  cdLeng <- ((ck-1)*150+1):(ck*150)
 }
 # cdLeng <- 1
 
@@ -109,7 +109,7 @@ for(j in 1:length(waterSmoothedVal)){
   vals <- waterSmoothedVal[[j]]
   waterVal <- c(waterVal,max(vals,na.rm=T))
   
-  if(j%%10000==0) print(j)
+  if(j%%100000==0) print(j)
 }
 
 
@@ -126,7 +126,7 @@ save(waterVal, file=outFile)
 ########################################
 files <- list.files(outDir,pattern=glob2rx('*rda'),full.names=T)
 
-if(length(files)==14){
+if(length(files)==24){
   waterVals <- c()
   for(i in 1:length(files)){
     load(files[i])

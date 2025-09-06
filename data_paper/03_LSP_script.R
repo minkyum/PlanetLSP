@@ -16,7 +16,7 @@ print(args)
 
 numSite <- as.numeric(substr(args[3],1,3))
 cc      <- as.numeric(substr(args[3],4,6))
-# numSite <- 37; cc <- 50
+# numSite <- 4; cc <- 50
 
 
 
@@ -31,8 +31,8 @@ source(params$setup$rFunctions)
 strSite <- list.dirs(params$setup$outDir,full.names=F,recursive=F)[numSite]
 print(strSite)
 
-# ckDir <- paste0(params$setup$outDir,strSite,'/chunk')
-ckDir <- paste0('/projectnb/modislc/users/mkmoon/Planet/rawImage/chunks/',strSite)
+ckDir <- paste0(params$setup$outDir,strSite,'/chunk')
+# ckDir <- paste0('/projectnb/modislc/users/mkmoon/Planet/rawImage/chunks/',strSite)
 print(ckDir)
 
 ckNum <- sprintf('%03d',cc)
@@ -54,16 +54,16 @@ load(file)
 
 
 ## Load water mask
-waterRater <- raster(paste0(params$setup$outDir,strSite,'/water_mask_30_1.tif'))
+waterRaster <- raster(paste0(params$setup$outDir,strSite,'/water_mask_30_1.tif'))
 
 numCk <- params$setup$numChunks
-chunk <- length(waterRater)%/%numCk
+chunk <- length(waterRaster)%/%numCk
 if(cc==numCk){
-  chunks <- c((chunk*(cc-1)+1):length(waterRater))
+  chunks <- c((chunk*(cc-1)+1):length(waterRaster))
 }else{
   chunks <- c((chunk*(cc-1)+1):(chunk*cc))
 }
-waterMask <- values(waterRater)[chunks]
+waterMask <- values(waterRaster)[chunks]
 
 
 ##########################################

@@ -898,15 +898,16 @@ GetSiteShp <- function(fileSR, cLong, cLat){
   
   # Shape file for 10 by 10 km window
   geog_crs = CRS("+proj=longlat +datum=WGS84")
-  utm_crs = raster(fileSR[1])@crs
+  # utm_crs = raster(fileSR[1])@crs
+  utm_crs = crs(raster(fileSR[1]))
   site <- data.frame(1,cLong,cLat)
   colnames(site) <- c('id','lon','lat')
   xy   <- site[,c(2,3)]
   bb   <- SpatialPointsDataFrame(coords=xy,data=site,proj4string=geog_crs)
   bb   <- spTransform(bb,utm_crs)
   
-  x1 <- bb@coords[1] - 2500; x2 <- bb@coords[1] + 2500
-  y1 <- bb@coords[2] - 2500; y2 <- bb@coords[2] + 2500
+  x1 <- bb@coords[1] - 5500; x2 <- bb@coords[1] + 5500
+  y1 <- bb@coords[2] - 5500; y2 <- bb@coords[2] + 5500
   xCoor <- c(x1,x2,x2,x1); yCoor <- c(y1,y1,y2,y2); xym <- cbind(xCoor,yCoor)
   p   <- Polygon(xym); ps  <- Polygons(list(p),1); sps <- SpatialPolygons(list(ps))
   proj4string(sps) <- utm_crs; data <- data.frame(f=99.9)

@@ -15,7 +15,7 @@ print(args)
 
 numSite <- as.numeric(substr(args[3],1,3))
 cc      <- as.numeric(substr(args[3],4,6))
-# numSite <- 37; cc <- 100
+# numSite <- 8; cc <- 100
 
 
 ###############################
@@ -62,8 +62,8 @@ imgBase <- raster(paste0(params$setup$outDir,strSite,'/base_image.tif'))
 numCk <- params$setup$numChunks
 chunk <- length(imgBase)%/%numCk
 
-# ckDir <- paste0(params$setup$outDir,strSite,'/chunk')
-ckDir <- paste0('/projectnb/modislc/users/mkmoon/Planet/rawImage/chunks/',strSite)
+ckDir <- paste0(params$setup$outDir,strSite,'/chunk')
+# ckDir <- paste0('/projectnb/modislc/users/mkmoon/Planet/rawImage/chunks/',strSite)
 if (!dir.exists(ckDir)) {dir.create(ckDir)}
 
 

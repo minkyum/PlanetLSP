@@ -1,3 +1,5 @@
+library(sp)
+library(raster)
 library(terra)
 library(sf)
 
@@ -12,7 +14,7 @@ args <- commandArgs()
 print(args)
 
 numSite <- as.numeric(args[3])
-# numSite <- 1
+# numSite <- 8
 
 
 ###############################
@@ -34,7 +36,6 @@ print(paste(strSite,';',imgDir))
 
 cLong <- siteInfo[[3]];cLat <- siteInfo[[4]]
 print(paste(cLong,';',cLat))
-
 
 
 ########################################
@@ -65,15 +66,15 @@ for(i in 1:length(dfileSR)){
 dates_all <- as.Date(paste(mm,'/',dd,'/',yy,sep=''),'%m/%d/%y')
 dates <- unique(dates_all)
 
-# #
+# # #
 # datesod <- order(dates)
-# setwd('/projectnb/modislc/users/mkmoon/KoreaProject/figure/')
-# png(filename='numofimage.png',width=7.5,height=6.5,unit='in',res=300)
+# # setwd('/projectnb/modislc/users/mkmoon/KoreaProject/figure/')
+# # png(filename='numofimage.png',width=7.5,height=6.5,unit='in',res=300)
 # par(oma=c(1,1,1,1),mar=c(4,4,1,1),mgp=c(2.5,1,0))
 # plot(dates[datesod],
 #      xlab='Number of Image',ylab='Dates',cex.axis=1.2,cex.lab=1.5)
-# dev.off()
-# #
+# # dev.off()
+# # #
 
 print(length(dates))
 
@@ -87,11 +88,12 @@ if (!dir.exists(outDir)) {dir.create(outDir)}
 
 ## Get Site Shapefile and base image
 siteWin <- GetSiteShp(fileSR,cLong,cLat)
-# if(numSite==88 | numSite==89 | numSite==97 | numSite==101 | numSite==102){
-# imgBase <- GetBaseImg(fileSR,siteWin,outDir,save=T)
-# }else{
+
+if (file.exists(paste0(outDir,'/base_image.tif'))) {
   imgBase <- raster(paste0(outDir,'/base_image.tif'))
-# }
+} else {
+  imgBase <- GetBaseImg(fileSR, siteWin, outDir, save = TRUE)
+}
 
 
 ##

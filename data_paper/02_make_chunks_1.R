@@ -14,7 +14,7 @@ args <- commandArgs()
 print(args)
 
 numSite <- as.numeric(args[3])
-# numSite <- 53
+# numSite <- 1
 
 
 ###############################
