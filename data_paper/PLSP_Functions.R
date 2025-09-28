@@ -906,8 +906,8 @@ GetSiteShp <- function(fileSR, cLong, cLat){
   bb   <- SpatialPointsDataFrame(coords=xy,data=site,proj4string=geog_crs)
   bb   <- spTransform(bb,utm_crs)
   
-  x1 <- bb@coords[1] - 5500; x2 <- bb@coords[1] + 5500
-  y1 <- bb@coords[2] - 5500; y2 <- bb@coords[2] + 5500
+  x1 <- bb@coords[1] - 5000; x2 <- bb@coords[1] + 5000
+  y1 <- bb@coords[2] - 5000; y2 <- bb@coords[2] + 5000
   xCoor <- c(x1,x2,x2,x1); yCoor <- c(y1,y1,y2,y2); xym <- cbind(xCoor,yCoor)
   p   <- Polygon(xym); ps  <- Polygons(list(p),1); sps <- SpatialPolygons(list(ps))
   proj4string(sps) <- utm_crs; data <- data.frame(f=99.9)
@@ -939,18 +939,18 @@ GetBaseImg <- function(fileSR, siteWin, outDir, save=TRUE){
   set.seed(456123)
   sam <- sample(1:length(fileSR),numImg)
   for(i in 1:numImg){
-    log <- try({temp <- raster(fileSR[sam[i]])},silent=T)
+    log <- try({temp <- rast(fileSR[sam[i]])},silent=T)
     if(inherits(log,'try-error')){
       imgBase[[i]] <- img1
     }else{
-      imgBase[[i]] <- raster(fileSR[sam[i]])
+      imgBase[[i]] <- rast(fileSR[sam[i]])
     }
   }
   
   for(i in 1:numImg){
     log <- try(compareRaster(imgBase[[i]],img1,extent=F,rowcol=F),silent=T)
     if(inherits(log,'try-error')){
-      imgBase[[i]] <- projectRaster(imgBase[[i]],img1)    
+      imgBase[[i]] <- project(imgBase[[i]],img1)    
     }
     log <- try(imgBase[[i]] <- crop(imgBase[[i]],siteWin),silent=T)
     if(inherits(log,'try-error')){

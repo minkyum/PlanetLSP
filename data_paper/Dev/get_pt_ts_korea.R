@@ -9,14 +9,8 @@ library(doMC)
 library(doParallel)
 
 ###############################
-args <- commandArgs()
-print(args)
 
-vv <- args[3]
-# vv <- 'dbf_class5'
-numSite <- 37
-
-print(vv)
+numSite <- 9
 
 
 ########################################
@@ -32,7 +26,7 @@ strSite <- list.dirs(params$setup$outDir,full.names=F,recursive=F)[numSite]
 print(strSite)
 
 # ckDir <- paste0(params$setup$outDir,strSite,'/chunk')
-ckDir <- paste0('/projectnb/modislc/users/mkmoon/Planet/rawImage/chunks/',strSite)
+ckDir <- paste0('/projectnb/modislc/users/mkmoon/sukyungkim/LSP/Img_cliped/',strSite,'/chunk/')
 print(ckDir)
 
 
